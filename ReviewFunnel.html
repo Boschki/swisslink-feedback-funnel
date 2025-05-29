@@ -1,0 +1,291 @@
+<style>
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    .fade-in {
+      animation: fadeIn 0.8s ease-out forwards; /* Increased duration for smoother fade */
+    }
+
+    @keyframes pulse {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.05); box-shadow: 0 0 15px rgba(0, 0, 0, 0.3); } /* More pronounced pulse shadow */
+      100% { transform: scale(1); }
+    }
+
+    .pulse-animation {
+      animation: pulse 0.3s ease-out;
+    }
+
+    /* Custom button style to precisely match the reference image */
+    .btn-swisslink-dark {
+        background-color: #1a202c !important; /* Equivalent to bg-gray-900 */
+        color: #ffffff !important; /* Equivalent to text-white */
+        font-weight: 900 !important; /* Equivalent to font-black */
+        padding: 0.75rem 1.5rem !important; /* Equivalent to py-3 px-6 */
+        border-radius: 0.125rem !important; /* Equivalent to rounded-sm */
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06) !important; /* Equivalent to shadow-md */
+        transition-property: all !important;
+        transition-duration: 300ms !important;
+        transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1) !important; /* ease-in-out */
+        transform: scale(1) !important; /* Initial scale */
+    }
+    .btn-swisslink-dark:hover {
+        background-color: #2d3748 !important; /* Equivalent to hover:bg-gray-800 */
+        transform: scale(1.05) !important; /* Equivalent to hover:scale-105 */
+    }
+
+    /* YouTube video background container - ensures it covers the whole viewport */
+    .youtube-background-container {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        overflow: hidden; /* Crucial for cropping excess video */
+        z-index: -2; /* Even further back than the overlay */
+    }
+
+    /* iframe itself - dimensions will be set by JavaScript, initially hidden */
+    .youtube-background-container iframe {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        pointer-events: none; /* Allows clicks to pass through to elements below */
+        visibility: hidden; /* Initially hide to prevent control flicker */
+        /* Width and Height will be set by JavaScript for responsiveness */
+    }
+
+    /* Overlay to darken video and ensure text readability */
+    .video-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        /* Subtle gradient overlay from transparent to dark at the bottom */
+        background: linear-gradient(to bottom, rgba(0, 0, 0, 0.3) 0%, rgba(0, 0, 0, 0.7) 100%);
+        z-index: -1;
+    }
+
+    /* Added for initial heading animation */
+    .initial-prompt-heading {
+        opacity: 0;
+        transform: translateY(20px);
+        animation: slideInFadeIn 0.8s ease-out forwards;
+        animation-delay: 0.2s; /* Delay to appear after page load */
+    }
+
+    @keyframes slideInFadeIn {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+</style>
+  
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"> 
+    <title>Swiss Link Feedback</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <script src="https://www.youtube.com/iframe_api"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+    </style>
+</head>
+<body class="bg-black min-h-screen flex items-center justify-center p-4">
+    <div class="youtube-background-container">
+        <iframe
+            id="youtube-bg-video"
+            src="https://www.youtube.com/embed/oqtpL9W6dKE?autoplay=1&mute=1&loop=1&playlist=oqtpL9W6dKE&controls=0&showinfo=0&autohide=1&modestbranding=1&enablejsapi=1"
+            frameborder="0"
+            allow="autoplay; encrypted-media"
+            allowfullscreen
+        ></iframe>
+    </div>
+    <div class="video-overlay"></div>
+
+    <div class="absolute top-4 text-xs text-gray-400 text-center w-full">
+        Proudly family owned since 1996.
+    </div>
+
+    <div class="bg-white rounded-xl shadow-2xl p-8 md:p-12 max-w-2xl w-full text-center border border-gray-100 relative z-10">
+        <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS4UuR40iA7bp5tYLlInydQ1orcB-bkRjLcag&s" alt="Swiss Link Logo" class="max-h-16 mx-auto mb-8">
+        
+        <div id="initialPrompt" class="space-y-8">
+            <h1 class="text-3xl md:text-4xl font-bold text-gray-900 leading-tight mb-6 initial-prompt-heading">
+                How do you rate your experience with us?
+            </h1>
+            <div class="flex justify-center space-x-8">
+                <button id="smileyBtn" class="p-4 rounded-full bg-gray-200 hover:bg-gray-300 transition duration-300 ease-in-out transform hover:scale-110 focus:outline-none focus:ring-4 focus:ring-gray-300 shadow-lg hover:shadow-xl">
+                    <i class="fas fa-smile fa-3x text-green-600"></i>
+                    <span class="sr-only">Smiley Face</span>
+                </button>
+
+                <button id="sadBtn" class="p-4 rounded-full bg-gray-200 hover:bg-gray-300 transition duration-300 ease-in-out transform hover:scale-110 focus:outline-none focus:ring-4 focus:ring-gray-300 shadow-lg hover:shadow-xl">
+                    <i class="fas fa-frown fa-3x text-red-600"></i>
+                    <span class="sr-only">Sad Face</span>
+                </button>
+            </div>
+        </div>
+
+        <div id="positiveFeedback" class="hidden space-y-6 fade-in">
+            <button onclick="showInitialPrompt()" class="absolute top-4 left-4 text-gray-600 hover:text-gray-800 focus:outline-none text-sm font-medium">
+                <i class="fas fa-arrow-left mr-1 text-base"></i> Go Back
+            </button>
+            <h2 class="text-3xl font-black text-gray-900">Mission accomplished!</h2>
+            <p class="text-lg text-gray-700">Would it be crazy to ask you to leave a review and share the love?</p>
+            <a href="https://www.trustpilot.com/review/swisslink.com" target="_blank" rel="noopener noreferrer"
+               class="inline-block btn-swisslink-dark mt-4"> Leave a Review
+            </a>
+        </div>
+
+        <div id="negativeFeedback" class="hidden space-y-6 fade-in">
+            <button onclick="showInitialPrompt()" class="absolute top-4 left-4 text-gray-600 hover:text-gray-800 focus:outline-none text-sm font-medium">
+                <i class="fas fa-arrow-left mr-1 text-base"></i> Go Back
+            </button>
+            <h2 class="text-3xl font-black text-gray-900">Not completely satisfied?</h2>
+            <p class="text-lg text-gray-700">Please reach out to us and we will do our best<br> to turn that frown upside down!</p>
+            <a href="https://swisslink.com/on/demandware.store/Sites-swisslink-Site/en_US/ContactUs-Landing" target="_blank" rel="noopener noreferrer"
+               class="inline-block btn-swisslink-dark"> Contact Us
+            </a>
+        </div>
+    </div>
+
+    <footer class="absolute bottom-4 text-xs text-gray-400 text-center w-full">
+        Your privacy is important to us. All feedback is handled securely.
+    </footer>
+
+    <script>
+        let player; // Declare player globally
+
+        // This function is called by the YouTube IFrame Player API when it's ready
+        function onYouTubeIframeAPIReady() {
+            player = new YT.Player('youtube-bg-video', {
+                videoId: 'oqtpL9W6dKE', // The video ID
+                playerVars: {
+                    autoplay: 1,      // Autoplay the video
+                    mute: 1,          // Mute the video
+                    loop: 1,          // Loop the video
+                    playlist: 'oqtpL9W6dKE', // Important for looping a single video
+                    controls: 0,      // Hide video controls
+                    showinfo: 0,      // Hide video title and uploader info
+                    autohide: 1,      // Hide video progress bar and controls
+                    modestbranding: 1, // Show a more modest YouTube logo
+                    enablejsapi: 1    // Enable JavaScript API
+                },
+                events: {
+                    'onReady': onPlayerReady,
+                    'onStateChange': onPlayerStateChange
+                }
+            });
+        }
+
+        // This function is called when the video player is ready
+        function onPlayerReady(event) {
+            event.target.playVideo(); // Ensure video plays
+            event.target.mute();      // Ensure video is muted
+            // Make the iframe visible now that it's ready and playing
+            document.getElementById('youtube-bg-video').style.visibility = 'visible';
+            resizeVideo(); // Initial resize once player is ready
+        }
+
+        // This function handles video state changes (e.g., when it ends for looping)
+        function onPlayerStateChange(event) {
+            if (event.data === YT.PlayerState.ENDED) {
+                player.seekTo(0); // Go to the beginning
+                player.playVideo(); // Play again to ensure continuous loop
+            }
+        }
+
+        // Function to show a specific section and hide others
+        function showSection(sectionToShow, pageTitle) {
+            const initialPrompt = document.getElementById('initialPrompt');
+            const positiveFeedback = document.getElementById('positiveFeedback');
+            const negativeFeedback = document.getElementById('negativeFeedback');
+
+            if (initialPrompt) initialPrompt.classList.add('hidden');
+            if (positiveFeedback) positiveFeedback.classList.add('hidden');
+            if (negativeFeedback) negativeFeedback.classList.add('hidden');
+
+            if (sectionToShow) {
+                sectionToShow.classList.remove('hidden');
+                sectionToShow.classList.add('fade-in');
+            }
+            document.title = pageTitle;
+        }
+
+        function showInitialPrompt() {
+            const initialPrompt = document.getElementById('initialPrompt');
+            const positiveFeedback = document.getElementById('positiveFeedback');
+            const negativeFeedback = document.getElementById('negativeFeedback');
+
+            if (initialPrompt) initialPrompt.classList.remove('hidden');
+            if (positiveFeedback) positiveFeedback.classList.add('hidden');
+            if (negativeFeedback) negativeFeedback.classList.add('hidden');
+            document.title = "Swiss Link Feedback";
+        }
+
+        // Function to resize the video to cover the screen
+        function resizeVideo() {
+            const youtubeVideo = document.getElementById('youtube-bg-video');
+            if (!youtubeVideo) return;
+
+            const viewportWidth = window.innerWidth;
+            const viewportHeight = window.innerHeight;
+            const viewportRatio = viewportWidth / viewportHeight;
+            const videoRatio = 16 / 9; // Assuming a 16:9 aspect ratio for most YouTube videos
+
+            if (viewportRatio > videoRatio) {
+                youtubeVideo.style.width = viewportWidth + 'px';
+                youtubeVideo.style.height = (viewportWidth / videoRatio) + 'px';
+            } else {
+                youtubeVideo.style.height = viewportHeight + 'px';
+                youtubeVideo.style.width = (viewportHeight * videoRatio) + 'px';
+            }
+        }
+
+        // Event listeners for smiley/sad buttons
+        document.addEventListener('DOMContentLoaded', (event) => {
+            const smileyBtn = document.getElementById('smileyBtn');
+            const sadBtn = document.getElementById('sadBtn');
+
+            if (smileyBtn) {
+                smileyBtn.addEventListener('click', (event) => {
+                    const clickedButton = event.currentTarget;
+                    clickedButton.classList.add('pulse-animation');
+                    clickedButton.addEventListener('animationend', () => {
+                        clickedButton.classList.remove('pulse-animation');
+                        showSection(document.getElementById('positiveFeedback'), "Swiss Link - Positive Feedback");
+                    }, { once: true });
+                });
+            }
+
+            if (sadBtn) {
+                sadBtn.addEventListener('click', (event) => {
+                    const clickedButton = event.currentTarget;
+                    clickedButton.classList.add('pulse-animation');
+                    clickedButton.addEventListener('animationend', () => {
+                        clickedButton.classList.remove('pulse-animation');
+                        showSection(document.getElementById('negativeFeedback'), "Swiss Link - Contact Us");
+                    }, { once: true });
+                });
+            }
+
+            // Initial resize and resize on window changes
+            window.addEventListener('resize', resizeVideo);
+            // No need to call resizeVideo() here, as it will be called by onPlayerReady
+            
+            // Set initial page title
+            document.title = "Swiss Link Feedback";
+        });
+    </script>
+</body>
+</html>
